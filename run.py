@@ -6,8 +6,12 @@ with Intercity()as bot:
     bot.fill_date()
     bot.fill_time()
     bot.seek()
-    bot.fill_normal_people()
-    bot.fill_students()
-    bot.fill_discount_type()
-    bot.click_dalej_button()
+    try:
+        bot.fill_normal_people()
+        bot.fill_students()
+        bot.fill_discount_type()
+        bot.click_dalej_button()
+    except:
+        print('no train available')
+        exit(-1)
     bot.fill_name_of_traveller()
