@@ -1,15 +1,53 @@
+import os
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import os
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-import time
-
+from datetime import datetime,timedelta
 time_to_sleep = 10
+
+
+
+
+
 
 
 class Intercity(webdriver.Chrome):
     def __init__(self, driverPath=r"C:\SeleniumDrivers", teardown=False):
+        x = int(input('podaj trasę:  \n1:wro-krk \n2: krk-wro \n3:wro-kostrz \n4:kostrz-wro \n5:krk-kostrz \n6:kostrz-krk \n7:niest'))
+        if x ==1:
+            self.start_city = 'Wrocław'
+            self.end_city = 'Kraków'
+        elif x==2:
+            self.start_city = 'Kraków'
+            self.end_city = 'Wrocław'
+        elif x ==3:
+            self.start_city='Wrocław'
+            self.end_city = "Kostrzyn" #todo add proper kostrzyn name
+        elif x ==4:
+            self.start_city="Kostrzyn"
+            self.end_city =  'Wrocław'
+        elif x==5:
+            self.start_city = 'Kraków'
+            self.end_city = 'Kostrzyn'
+        elif x==6:
+            self.start_city = 'Kostrzyn'
+            self.end_city = 'Kraków'
+        #     non standard route
+        else:
+            self.start_city = 'Kraków'
+            self.end_city = 'Wrocław'
+
+        y = int(input('dzisiaj 1: jutro 2:'))
+        if y==1:
+            self.date = datetime.today().strftime('%Y-%m-%d')
+        else:
+            self.date = (datetime.today() + timedelta(1)).strftime('%Y-%m-%d')
+
+        self.time = input('podaj godzine: np 12:30\n')
+
+
         self.driverPath = driverPath
         self.teardown = teardown
         os.environ['PATH'] = self.driverPath
@@ -24,38 +62,38 @@ class Intercity(webdriver.Chrome):
         if self.teardown:
             self.quit()
 
-    def fill_start_city(self, city='Wrocław'):
+    def fill_start_city(self):
         city_form = self.find_element(By.ID, "stname-0")
-        city_form.send_keys(city)
-        city_dropout = self.find_element(By.CSS_SELECTOR, 'a[title="Wrocław Główny"]')
+        city_form.send_keys(self.start_city)
+        city_dropout = self.find_element(By.CSS_SELECTOR, f'a[title*="{self.start_city} "]')
+        # default station in IC is main so nothing else o do here
         city_dropout.click()
 
-    def fill_end_city(self, city='Kraków'):
+    def fill_end_city(self):
         city_form = self.find_element(By.ID, "stname-1")
-        city_form.send_keys(city)
-        city_dropout = self.find_element(By.CSS_SELECTOR, 'a[title="Kraków Główny"]')
+        city_form.send_keys(self.end_city)
+        city_dropout = self.find_element(By.CSS_SELECTOR, f'a[title*="{self.end_city}"]')
         city_dropout.click()
 
     # todo: change default date
-    def fill_date(self, date='2022-02-24'):
+    def fill_date(self):
         date_form = self.find_element(By.ID, "date_picker")
         date_form.clear()
-        date_form.send_keys(date)
+        date_form.send_keys(self.date)
 
-    def fill_time(self, start_time='12:31'):
+    def fill_time(self,):
         time_form = self.find_element(By.ID, "ic-seek-time")
         time_form.clear()
         for i in range(5):
             time_form.send_keys(Keys.BACK_SPACE)
-        time_form.send_keys(start_time)
+        time_form.send_keys(self.time)
         time_form.send_keys(Keys.ENTER)
-        #   fixme:  works with seek
+        #  works with seek
 
     def seek(self):
         btn = self.find_element(By.CSS_SELECTOR, 'button[onclick="return grecaptcha.execute();"]')
         btn.click()
         self.implicitly_wait(5 * time_to_sleep)
-        time.sleep(5)
 
     def fill_normal_people(self, n=0):
         people_elem = Select(self.find_element(By.ID, "liczba_n"))
@@ -88,12 +126,12 @@ class Intercity(webdriver.Chrome):
         name_frame.send_keys(name)
         self.implicitly_wait(time_to_sleep)
 
-    def wrapper_find_train(self, start_city='Wrocław', end_city='Kraków', date='2022-02-24', start_time='12:31'):
+    def wrapper_find_train(self):
         self.land_first_page()
-        self.fill_start_city(start_city)
-        self.fill_end_city(end_city)
-        self.fill_date(date)
-        self.fill_time(start_time)
+        self.fill_start_city()
+        self.fill_end_city()
+        self.fill_date()
+        self.fill_time()
         self.seek()
 
     #         should work perfectly
@@ -113,7 +151,7 @@ class Intercity(webdriver.Chrome):
         no_register_elem.click()
         self.implicitly_wait(time_to_sleep)
 
-    def wrapper_user_data(self, name='adam', last_name='kowalski', email='asdfe.fdsfsfa@vp.pl'):
+    def wrapper_user_data(self, name='Michał', last_name='Luchowski', email='michal.luchowski@vp.pl'):
         form_elem = self.find_element(By.CLASS_NAME, "quest_register_form ")
         # fieldset_names_lst = ['imie','nazwisko','email','powt_email']
 
@@ -130,7 +168,7 @@ class Intercity(webdriver.Chrome):
         repeat_email_elem.send_keys(email)
         self.implicitly_wait(time_to_sleep)
 
-    def click_reg_accept(self):
+    def click_regulations_accept(self):
         checkbox = self.find_element(By.ID, "akceptacja")
         checkbox.click()
         self.implicitly_wait(time_to_sleep)
@@ -144,9 +182,9 @@ class Intercity(webdriver.Chrome):
         self.implicitly_wait(time_to_sleep * 2)
 
     def click_zatwierdz_btn(self):
-        submit_btn = self.find_element(By.CSS_SELECTOR,'input[onclick="document.daneKlienta.submit()"]')
+        submit_btn = self.find_element(By.CSS_SELECTOR, 'input[onclick="document.daneKlienta.submit()"]')
         submit_btn.click()
-        self.implicitly_wait(time_to_sleep*2)
+        self.implicitly_wait(time_to_sleep * 2)
 
     def send_thanks(self):
         print('thank u for using Intercity automation bot')
