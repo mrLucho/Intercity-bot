@@ -8,11 +8,6 @@ from datetime import datetime,timedelta
 time_to_sleep = 10
 
 
-
-
-
-
-
 class Intercity(webdriver.Chrome):
     def __init__(self, driverPath=r"C:\SeleniumDrivers", teardown=False):
         x = int(input('podaj trasę:  \n1:wro-krk \n2: krk-wro \n3:wro-kostrz \n4:kostrz-wro \n5:krk-kostrz \n6:kostrz-krk \n7:niest'))
@@ -120,7 +115,7 @@ class Intercity(webdriver.Chrome):
         dalej_button.click()
         self.implicitly_wait(time_to_sleep * 2)
 
-    def fill_name_of_traveller(self, name='Adam Kowalski'):
+    def fill_name_of_traveller(self, name='Michał Luchowski'):
         self.implicitly_wait(time_to_sleep)
         name_frame = self.find_element(By.ID, "imie_nazwisko_podroznego")
         name_frame.send_keys(name)
